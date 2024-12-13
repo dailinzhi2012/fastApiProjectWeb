@@ -1,0 +1,40 @@
+from fastapi import APIRouter, HTTPException
+from apps.users.schemas import RegisterForm, UserInfoSchema, LoginForm
+from apps.users.models import Users
+
+router = APIRouter(prefix="/api/users")
+
+
+@router.post("/register", tags=["用户管理"], summary="用户注册", response_model=UserInfoSchema)
+def register(item: RegisterForm):
+    if item.password != item.password_confirm:
+        raise HTTPException(status_code=400, detail="两次密码输入不一致")
+    # 校验用户名是否存在
+    if Users.objects(username=item.username).first():
+        raise HTTPException(status_code=400, detail="用户名已存在")
+    # 校验邮箱是否存在
+    if Users.objects(email=item.email).first():
+        raise HTTPException(status_code=400, detail="邮箱已存在")
+    # 校验手机号是否存在
+    if Users.objects(mobile=item.mobile).first():
+        raise HTTPException(status_code=400, detail="手机号已存在")
+    # 创建用户
+    user = Users.create(
+        username=item.username,
+        password=item.password,
+        email=item.email,
+        mobile=item.mobile,
+        nickname=item.nickname,
+    )
+    return UserInfoSchema(**user.__dict__)
+
+
+@router.post("/register", tags=["用户管理"], summary="用户登录", response_model=UserInfoSchema)
+async def login(item: LoginForm):
+    """登录的逻辑"""
+
+
+    user = await Users.get_or_none(username=item.username, password=item.password)
+    if not user:
+        raise HTTPException(status_code=400, detail="用户名或密码错误")
+    return UserInfoSchema(**user.__dict__)
