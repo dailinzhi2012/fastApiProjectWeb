@@ -22,3 +22,8 @@ class UserInfoSchema(BaseModel):
     mobile: str = Field(description="手机号")
     is_active: bool = Field(description="是否激活")
     is_superuser: bool = Field(description="是否超级管理员")
+
+
+class LoginSchema(BaseModel):
+    token: str = Field(description="访问令牌")
+    user: UserInfoSchema
